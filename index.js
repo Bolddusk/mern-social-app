@@ -30,5 +30,5 @@ app.get("/",(req,res)=>{
     return res.json("Node Blog Development API v1.0")
 })
 app.listen(8800,()=>{
-    console.log("Backend server is runing at: " + 8800)
+    console.log("Backend server is runing at:\nhttp://localhost:" + 8800)
 })

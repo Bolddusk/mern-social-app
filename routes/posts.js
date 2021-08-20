@@ -66,6 +66,7 @@ router.put("/:postId/like", async (req, res) => {
     const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json("Post not found");
 
+
     if (!post.likes.includes(req.body.userId)) {
       await post.updateOne({ $push: { likes: req.body.userId } });
       res.status(200).json("Post has been liked");
@@ -93,11 +94,11 @@ router.get("/:postid", async (req, res) => {
   }
 });
 // Get timeline posts
-router.get("/timeline/all", async (req, res) => {
+router.get("/timeline/:userId", async (req, res) => {
   try {
-    if (!req.body.userId) return res.status(404).json("User not found!");
+    if (!req.params.userId) return res.status(404).json("User not found!");
 
-    const currentUser = await User.findById(req.body.userId);
+    const currentUser = await User.findById(req.params.userId);
     const userPosts = await Post.find({userId : currentUser._id})
     const friendPosts = await Promise.all(
       currentUser.followings.map((friendId)=>{
@@ -105,6 +106,20 @@ router.get("/timeline/all", async (req, res) => {
       })
     )
     res.json(userPosts.concat(...friendPosts));
+    
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json("Unfortunately! Something went wrong");
+  }
+});
+// Get user's all posts
+router.get("/profile/:username", async (req, res) => {
+  try {
+    if (!req.params.username) return res.status(404).json("User not found!");
+
+    const user = await User.findOne({username:req.params.username});
+    const posts = await Post.find({userId: user._id})
+    res.status(200).json(posts);
     
   } catch (err) {
     console.log(err);

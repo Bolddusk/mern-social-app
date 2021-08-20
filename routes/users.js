@@ -3,9 +3,6 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const { route } = require("./auth");
 
-router.get("/", (req, res) => {
-  return res.json("It's user route");
-});
 
 // Update user
 router.put("/:id", async (req, res) => {
@@ -54,9 +51,15 @@ router.delete("/:id", async (req, res) => {
   }
 });
 // Get user
-router.get("/:id", async (req, res) => {
+// ?username=
+// ?userId
+router.get("/", async (req, res) => {
+  const username = req.query.username;
+  const userId = req.query.userId;
   try {
-    const user = await User.findById(req.params.id);
+    const user = userId
+      ? await User.findById(userId)
+      : await User.findOne({ username: username });
     const { password, updatedAt, ...other } = user._doc;
     res.status(200).json(other);
   } catch (err) {
@@ -92,35 +95,30 @@ router.post("/:id/follow", async (req, res) => {
   }
 });
 // Unfollow user
-router.post("/:id/unfollow",async (req, res)=>{
-    if(!req.body.userId)
-        res.status(400).json("userId is required.");
+router.post("/:id/unfollow", async (req, res) => {
+  if (!req.body.userId) res.status(400).json("userId is required.");
 
-        if(req.body.userId === req.params.id)
-            return res.status(400).json("You can't follow and unfollow yourself");
+  if (req.body.userId === req.params.id)
+    return res.status(400).json("You can't follow and unfollow yourself");
 
-        const user = await User.findById(req.params.id);
-        if(!user)
-            res.status(400).json("User not found");
-        
+  const user = await User.findById(req.params.id);
+  if (!user) res.status(400).json("User not found");
 
-        const currentUser = await User.findById(req.body.userId);
-        if(currentUser.followings.includes(req.params.id)){
-            await user.updateOne({$pull : {followers : req.body.userId}});
-            await currentUser.updateOne({$pull : {followings : req.params.id}})
+  const currentUser = await User.findById(req.body.userId);
+  if (currentUser.followings.includes(req.params.id)) {
+    await user.updateOne({ $pull: { followers: req.body.userId } });
+    await currentUser.updateOne({ $pull: { followings: req.params.id } });
 
-            res.status(200).json("user has been unfollowed");
+    res.status(200).json("user has been unfollowed");
+  } else {
+    res.status(400).json("User wasn't being followed!");
+  }
 
-        }else{
-            res.status(400).json("User wasn't being followed!");
-        }
-
-    try{
-
-    }catch(err){
-        console.log(err);
-        res.status(500).json("Something went wrong!");
-    }
-})
+  try {
+  } catch (err) {
+    console.log(err);
+    res.status(500).json("Something went wrong!");
+  }
+});
 
 module.exports = router;
