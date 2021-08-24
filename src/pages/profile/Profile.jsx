@@ -7,6 +7,7 @@ import Feed from "../../components/feed/Feed";
 import Rightbar from "../../components/rightbar/Rightbar";
 import axios from "axios";
 import { useParams } from "react-router";
+import { ContactlessOutlined } from "@material-ui/icons";
 
 export default function Profile() {
 
@@ -14,7 +15,7 @@ export default function Profile() {
   const [user, setUser] = useState({});
 
   const username = useParams().username;
-  
+
   useEffect(() => {
     const fetchUser = async () => {
       const res = await axios.get("/users?username=" + username);
@@ -32,12 +33,12 @@ export default function Profile() {
           <div className="profileRightTop">
             <div className="profileCover">
               <img
-                src={user.coverPicture || `${PF}post/3.jpeg`}
+                src={ PF + ((user.coverPicture) ? user.coverPicture  : "post/3.jpeg")}
                 alt=""
                 className="profileCoverImg"
               />
               <img
-                src={user.profilePicture || `${PF}no_avatar.png`}
+                src={PF + ((user.profilePicture) ? user.profilePicture : "no_avatar.png")}
                 alt=""
                 className="profileUserImg"
               />
