@@ -28,7 +28,6 @@ router.post("/register", async (req, res) => {
 //LOGIN
 router.post("/login", async (req, res) => {
   try {
-
     if(!req.body.password || !req.body.email)
       res.status(400).json("Email or Password is missing.")
 

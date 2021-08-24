@@ -3,7 +3,6 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const { route } = require("./auth");
 
-
 // Update user
 router.put("/:id", async (req, res) => {
   if (!req.body.userId) return res.status(400).json("userId is missing!");
@@ -34,6 +33,7 @@ router.put("/:id", async (req, res) => {
     return res.status(403).json("You can only update your account!");
   }
 });
+
 // Delete User
 router.delete("/:id", async (req, res) => {
   if (!req.body.userId) res.status(400).json("UserId is required.");
@@ -50,6 +50,7 @@ router.delete("/:id", async (req, res) => {
     res.status(403).json("You're not allowed to delete this account.");
   }
 });
+
 // Get user
 // ?username=
 // ?userId
@@ -67,8 +68,9 @@ router.get("/", async (req, res) => {
     res.status(500).json("Something went wrong!");
   }
 });
+
 // Follow user
-router.post("/:id/follow", async (req, res) => {
+router.put("/:id/follow", async (req, res) => {
   if (!req.body.userId) res.status(400).json("userId is required");
 
   if (req.body.userId !== req.params.id) {
@@ -94,8 +96,37 @@ router.post("/:id/follow", async (req, res) => {
     res.status(400).json("You can't follow yourself!");
   }
 });
+
+// Get Friends/Followings
+router.get("/friends/:userId", async (req, res) => {
+  try {
+    if (!req.params.userId) return res.status(204).json("UserId is required");
+
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).json("User not found!");
+    }
+
+    const friends = await Promise.all(
+      user.followings.map((friendId) => {
+        return User.findById(friendId);
+      })
+    );
+    let friendsList = [];
+    friends.map((friend) => {
+      const { _id, username, profilePicture } = friend;
+      friendsList.push({ _id, username, profilePicture });
+    });
+
+    return res.status(200).json(friendsList);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json("Something went wrong!");
+  }
+});
+
 // Unfollow user
-router.post("/:id/unfollow", async (req, res) => {
+router.put("/:id/unfollow", async (req, res) => {
   if (!req.body.userId) res.status(400).json("userId is required.");
 
   if (req.body.userId === req.params.id)
